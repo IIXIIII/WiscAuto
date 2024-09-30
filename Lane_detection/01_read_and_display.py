@@ -16,6 +16,8 @@ img = cv2.imread('red.png',cv2.IMREAD_COLOR)
 print(type(img))
 print(img.shape)
 
+height, width = img.shape[:2]
+
 '''
 # show the image
 cv2.imshow('img',img)
@@ -33,11 +35,11 @@ hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 # cv2.imshow('hsv',img);k = cv2.waitKey(0)
 
 # Define the HSV range for red color (handles the hue wrapping)
-lower_red1 = np.array([0, 70, 50])
+lower_red1 = np.array([0, 70, 51])
 upper_red1 = np.array([10, 255, 255])
 
-lower_red2 = np.array([170, 70, 50])
-upper_red2 = np.array([180, 255, 255])
+lower_red2 = np.array([160, 100, 100])
+upper_red2 = np.array([179, 255, 255])
 
 # Create masks for both red ranges
 mask1 = cv2.inRange(hsv, lower_red1, upper_red1)
@@ -45,6 +47,9 @@ mask2 = cv2.inRange(hsv, lower_red2, upper_red2)
 
 # Combine the masks
 mask = cv2.bitwise_or(mask1, mask2)
+
+
+
 
 # Apply morphological operations to reduce noise
 kernel = np.ones((5, 5), np.uint8)
@@ -82,7 +87,7 @@ if len(centers) >= 2:
     line_y = ransac.predict(line_X.reshape(-1, 1))
     pt1 = (int(line_X[0]), int(line_y[0]))
     pt2 = (int(line_X[1]), int(line_y[1]))
-    cv2.line(img, pt1, pt2, (0, 255, 0), 5)  # Green line for the first line
+    cv2.line(img, pt1, pt2, (0, 0, 225), 5)  # Green line for the first line, the final answer should contain two red line, for debug purpose the firt line was set to green
 
     # Remove inliers (cones close to the first line)
     X_outliers = X[~inlier_mask]
@@ -104,6 +109,10 @@ if len(centers) >= 2:
         print("Not enough cones to fit a second line.")
 else:
     print("Not enough cones detected to define the road.")
+
+
+
+
 
 # Show the result
 cv2.imshow('Road Detection', img)
