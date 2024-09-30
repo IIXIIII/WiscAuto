@@ -1,4 +1,4 @@
 # WiscAuto
  ## new member project for WA projection, the code and the image is inside the Lane_detection folder, 
    
- ## havn't finish, will keep updating before the ddl
+ ## Finished, see the final answer, but will still keep updating before the ddl
