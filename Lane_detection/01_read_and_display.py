@@ -30,36 +30,50 @@ hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 # cv2.imshow('hsv',img);k = cv2.waitKey(0)
 
 
-# Define the HSV range for bright orange-yellow
-lower_orange_yellow = np.array([10, 100, 100])
-upper_orange_yellow = np.array([15, 255, 255])
+# Define HSV ranges for red color
+lower_red1 = np.array([0, 70, 50])
+upper_red1 = np.array([10, 255, 255])
 
-# Create a mask for the bright orange-yellow color
-mask = cv2.inRange(hsv, lower_orange_yellow, upper_orange_yellow)
+lower_red2 = np.array([170, 70, 50])
+upper_red2 = np.array([179, 255, 255])
+
+# Create masks for both ranges
+mask1 = cv2.inRange(hsv, lower_red1, upper_red1)
+mask2 = cv2.inRange(hsv, lower_red2, upper_red2)
+
+# Combine masks
+mask = cv2.bitwise_or(mask1, mask2)
 
 # Apply morphological operations to reduce noise
 kernel = np.ones((5, 5), np.uint8)
-mask = cv2.erode(mask, kernel, iterations=1)
-mask = cv2.dilate(mask, kernel, iterations=1)
+mask = cv2.erode(mask, kernel, iterations=2)
+mask = cv2.dilate(mask, kernel, iterations=2)
 
 # Find contours in the mask
 contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-# Initialize a list to store the centers of the contours
+# Initialize centers list
 centers = []
 
 for cnt in contours:
-    # Filter out small contours that may be noise
     if cv2.contourArea(cnt) > 100:
-        # Calculate moments for each contour
+        # Get the bounding box of the contour
+        x, y, w, h = cv2.boundingRect(cnt)
+        # Optionally filter by aspect ratio or other properties
+        # aspect_ratio = float(w) / h
+        # if 0.8 < aspect_ratio < 1.2:
+
+        # Draw a blue rectangle around the detected cone
+        cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)
+
+        # Calculate the center of the contour
         M = cv2.moments(cnt)
         if M['m00'] > 0:
-            # Calculate x, y coordinates of the center
             cx = int(M['m10'] / M['m00'])
             cy = int(M['m01'] / M['m00'])
             centers.append((cx, cy))
-            # Optionally, draw the center on the image
-            cv2.circle(img, (cx, cy), 5, (0, 255, 0), -1)
+            # Mark the center with a blue circle
+            cv2.circle(img, (cx, cy), 5, (255, 0, 0), -1)
 
 # Sort centers based on y-coordinate (top to bottom)
 centers.sort(key=lambda x: x[1])
@@ -72,20 +86,12 @@ if len(centers) >= 2:
         # Draw a red line between consecutive centers
         cv2.line(img, pt1, pt2, (0, 0, 255), 5)
 else:
-    print("Not enough orange-yellow markers detected to define the road.")
+    print("Not enough red markers detected to define the road.")
 
-
-#Display the mask (optional, for debugging)
-# cv2.imshow('Mask', mask)
-# cv2.waitKey(0)
-# cv2.destroyAllWindows()
-
-# Show the image with the detected road
+# Show the result
 cv2.imshow('Road Detection', img)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 
 # Save the result
-cv2.imwrite('road_detected.png', img)
-
-
+cv2.imwrite('answer.png', img)
