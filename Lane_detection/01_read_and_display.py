@@ -112,8 +112,6 @@ else:
 
 
 
-
-
 # Show the result
 cv2.imshow('Road Detection', img)
 cv2.waitKey(0)
