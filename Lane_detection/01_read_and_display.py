@@ -118,4 +118,4 @@ cv2.waitKey(0)
 cv2.destroyAllWindows()
 
 # Save the image
-cv2.imwrite('answer.png', img)
+cv2.imwrite('answer02.png', img)
