@@ -3,7 +3,6 @@ import numpy as np
 from sklearn.cluster import KMeans
 from sklearn.linear_model import RANSACRegressor
 
-
 # use cv to read the given image, Here im using grayscale
 # which is a constant and is 0 here
 # but here I'm not sure
@@ -12,27 +11,13 @@ from sklearn.linear_model import RANSACRegressor
 # Here I think I batter read it as a color image, but I currently don't know how to use cv2.Color
 img = cv2.imread('red.png',cv2.IMREAD_COLOR)
 
-# show basic info about the image that was read
 print(type(img))
 print(img.shape)
 
 height, width = img.shape[:2]
 
-'''
-# show the image
-cv2.imshow('img',img)
-# wait 1000ms, 0 for forever
-k = cv2.waitKey(0)
-
-# save
-cv2.imwrite("answer.png",img)
-
-'''
-
 # Convert the image to the HSV color space
 hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-
-# cv2.imshow('hsv',img);k = cv2.waitKey(0)
 
 # Define the HSV range for red color (handles the hue wrapping)
 lower_red1 = np.array([0, 70, 51])
@@ -48,8 +33,27 @@ mask2 = cv2.inRange(hsv, lower_red2, upper_red2)
 # Combine the masks
 mask = cv2.bitwise_or(mask1, mask2)
 
+# ===== NEW CODE STARTS HERE =====
 
+# Create an ROI mask that excludes the two upper corners
+roi_mask = np.ones_like(mask, dtype=np.uint8) * 255  # Start with a white mask
 
+# Define the polygons for the two upper corners
+# For the left upper corner
+pts_left = np.array([[0, 0], [int(width * 0.5), 0], [0, int(height * 0.5)]], np.int32)
+pts_left = pts_left.reshape((-1, 1, 2))
+
+# For the right upper corner
+pts_right = np.array([[int(width * 0.5), 0], [width, 0], [width, int(height * 0.5)]], np.int32)
+pts_right = pts_right.reshape((-1, 1, 2))
+
+# Fill the upper corner polygons with black (0) to exclude them
+cv2.fillPoly(roi_mask, [pts_left, pts_right], 0)
+
+# Apply the ROI mask to the cone detection mask
+mask = cv2.bitwise_and(mask, roi_mask)
+
+# ===== NEW CODE ENDS HERE =====
 
 # Apply morphological operations to reduce noise
 kernel = np.ones((5, 5), np.uint8)
@@ -87,7 +91,7 @@ if len(centers) >= 2:
     line_y = ransac.predict(line_X.reshape(-1, 1))
     pt1 = (int(line_X[0]), int(line_y[0]))
     pt2 = (int(line_X[1]), int(line_y[1]))
-    cv2.line(img, pt1, pt2, (0, 0, 225), 5)  # Green line for the first line, the final answer should contain two red line, for debug purpose the firt line was set to green
+    cv2.line(img, pt1, pt2, (0, 0, 255), 5)  # Red line for the first line
 
     # Remove inliers (cones close to the first line)
     X_outliers = X[~inlier_mask]
@@ -110,12 +114,10 @@ if len(centers) >= 2:
 else:
     print("Not enough cones detected to define the road.")
 
-
-
 # Show the result
 cv2.imshow('Road Detection', img)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 
 # Save the image
-cv2.imwrite('answer02.png', img)
+cv2.imwrite('answer_Final.png', img)
